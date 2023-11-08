@@ -1,0 +1,57 @@
+{
+  "name": "example-destination",
+  "version": "0.1.0",
+  "description": "Custom Destination for Faros on Airbyte",
+  "keywords": [
+    "airbyte",
+    "destination",
+    "faros"
+  ],
+  "homepage": "https://www.faros.ai",
+  "author": "Faros AI, Inc.",
+  "license": "Unlicensened",
+  "repository": "https://github.com/faros-ai/example-airbyte-connectors",
+  "bugs": {
+    "url": "https://github.com/faros-ai/example-airbyte-connectors/issues"
+  },
+  "files": [
+    "lib/",
+    "resources/"
+  ],
+  "main": "./lib",
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "build": "tsc -p src",
+    "clean": "rm -rf lib node_modules out",
+    "fix": "prettier --write 'src/**/*.ts' 'test/**/*.ts' && npm run lint -- --fix",
+    "lint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "prepare": "npm run build",
+    "test": "jest --verbose --color",
+    "test-cov": "jest --coverage --verbose --color",
+    "watch": "tsc -b -w src test"
+  },
+  "dependencies": {
+    "airbyte-faros-destination": "0.6.7",
+    "faros-js-client": "0.3.1"
+  },
+  "jest": {
+    "coverageDirectory": "out/coverage",
+    "coveragePathIgnorePatterns": [
+      "<rootDir>/node_modules/",
+      "<rootDir>/test/"
+    ],
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testPathIgnorePatterns": [
+      "out/"
+    ],
+    "testTimeout": 30000,
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "test/tsconfig.json"
+      }
+    }
+  }
+}
