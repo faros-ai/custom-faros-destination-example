@@ -28,7 +28,7 @@ export class Tasks extends Converter {
     record: AirbyteRecord,
     ctx: StreamContext
   ): Promise<ReadonlyArray<DestinationRecord>> {
-    const task = record.record.data as Task;
+    const task = record.record.data.row as Task;
 
     return [
       {
