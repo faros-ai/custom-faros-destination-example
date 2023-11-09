@@ -1,6 +1,6 @@
 # Custom Faros Destination Example 
 
-This repository contains an example of custom Airbyte Faros destinations.
+This repository contains an example of a custom Airbyte Faros destination allowing writing data into Faros from any custom source.
 Please refer to the [documentation](https://github.com/faros-ai/airbyte-connectors/tree/main/destinations/airbyte-faros-destination#custom-sources) for more information about this feature.
 
 ## Development
@@ -9,9 +9,9 @@ Please refer to the [documentation](https://github.com/faros-ai/airbyte-connecto
 2. Install Node.js `nvm install 16 && nvm use 16`
 3. Install `lerna` by running `npm install -g lerna`
 4. Run `npm i` to install dependencies for all projects (`npm run clean` to clean all)
-5. Run `npm run build` to build all projects (for a single project, add scope, e.g, `npm run build -- --scope example-destination`)
-6. Run `npm run test` to test all projects (for a single project, add scope, e.g `npm run test -- --scope example-destination`)
-7. Run `npm run lint` to apply linter on all projects (for a single project, add scope, e.g, `npm run lint -- --scope example-destination`)
+5. Run `npm run build` to build all projects (for a single project, add scope, e.g., `npm run build -- --scope example-destination`)
+6. Run `npm run test` to test all projects (for a single project, add scope, e.g., `npm run test -- --scope example-destination`)
+7. Run `npm run lint` to apply linter on all projects (for a single project, add scope, e.g., `npm run lint -- --scope example-destination`)
 
 ## Other Useful Commands
 
