@@ -1,7 +1,7 @@
 # Example Custom Airbyte Faros Destinations
 
 This repository contains example custom Airbyte Faros destinations.
-Please refer to the [documentation](https://github.com/faros-ai/airbyte-connectors/tree/main/destinations/airbyte-faros-destination#custom-sources) for more information.
+Please refer to the [documentation](https://github.com/faros-ai/airbyte-connectors/tree/main/destinations/airbyte-faros-destination#custom-sources) for more information about this feature.
 
 ## Development
 
@@ -22,7 +22,7 @@ Read more about `lerna` [here](https://github.com/lerna/lerna).
 
 # Build Docker Images
 
-In order to build a Docker image for a destination run the `docker build` command and set `path` and `version` arguments.
+In order to build a Docker image for a destination, run the `docker build` command and set `path` and `version` arguments.
 
 For example, for the `example-destination` run:
 
