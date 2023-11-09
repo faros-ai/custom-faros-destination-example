@@ -4,7 +4,6 @@ WORKDIR /home/node/airbyte
 
 COPY lerna.json .tsconfig.json package.json package-lock.json ./
 RUN sed -i "/jest\|mockttp/d" package.json
-COPY ./sources ./sources
 COPY ./destinations ./destinations
 
 RUN apk add --no-cache --virtual .gyp python3 make g++ \
