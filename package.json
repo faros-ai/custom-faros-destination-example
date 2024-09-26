@@ -38,6 +38,7 @@
   },
   "overrides": {
     "degenerator": "^5.0.0",
+    "protobufjs": "^7.2.6",
     "tar": "6.2.1"
   },
   "workspaces": [
