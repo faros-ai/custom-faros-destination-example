@@ -33,7 +33,7 @@
     "watch": "tsc -b -w src test"
   },
   "dependencies": {
-    "airbyte-faros-destination": "0.10.31",
+    "airbyte-faros-destination": "0.10.65",
     "faros-js-client": "^0.5.2"
   },
   "jest": {
