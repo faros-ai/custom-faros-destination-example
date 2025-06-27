@@ -1,0 +1,25 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["lib/**", "tsconfig.tsbuildinfo"]
+    },
+    "test": {
+      "dependsOn": ["build"]
+    },
+    "test-cov": {
+      "dependsOn": ["build"],
+      "outputs": ["out/coverage/**"]
+    },
+    "lint": {
+      "cache": false
+    },
+    "fix": {
+      "cache": false
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}
