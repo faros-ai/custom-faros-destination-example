@@ -43,6 +43,7 @@
     "tar": "6.2.1"
   },
   "workspaces": [
-    "destinations/example-destination"
+    "destinations/example-destination",
+    "destinations/gerrit-events"
   ]
 }
