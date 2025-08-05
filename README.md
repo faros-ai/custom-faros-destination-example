@@ -11,7 +11,7 @@ Please refer to the [documentation](https://github.com/faros-ai/airbyte-connecto
 4. Run `npm i` to install dependencies for all projects (`npm run clean` to clean all)
 5. Run `turbo build` to build all projects (for a single project add scope, e.g., `turbo build --filter=example-destination`)
 6. Run `turbo test` to test all projects (for a single project add scope, e.g., `turbo test --filter=example-destination`)
-7. Run `turbo lint` to apply linter on all projects (for a single project add scope, e.g `turbo lint --filter=example-destination`)
+7. Run `turbo lint` to apply linter on all projects (for a single project add scope, e.g., `turbo lint --filter=example-destination`)
 
 
 ## Other Useful Commands
