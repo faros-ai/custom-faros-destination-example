@@ -28,6 +28,12 @@ To build a Docker image for a destination, run the `docker build` command and se
 For example, for the `example-destination` run:
 
 ```sh
-docker build . --build-arg path=destinations/example-destination --build-arg version=0.1.0 -t example-destination
+export IMAGE=gerrit
+export VERSION=0.1.0
+docker build . --build-arg path=destinations/$IMAGE \
+  --build-arg version=$VERSION \
+  -t $IMAGE \
+  --label "io.airbyte.version=$VERSION" \
+  --label "io.airbyte.name=$IMAGE"
 ```
 
