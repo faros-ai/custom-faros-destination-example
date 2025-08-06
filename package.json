@@ -17,7 +17,7 @@
     "@types/jest": "^29.5.3",
     "@types/lodash": "^4.14.173",
     "@types/luxon": "^3.0.0",
-    "@types/node": "^18.11.9",
+    "@types/node": "^22.14.0",
     "@types/verror": "^1.10.5",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",
@@ -44,6 +44,6 @@
   },
   "workspaces": [
     "destinations/example-destination",
-    "destinations/gerrit-events"
+    "destinations/gerrit"
   ]
 }

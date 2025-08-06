@@ -1,5 +1,5 @@
 {
-  "name": "gerrit-events",
+  "name": "gerrit",
   "version": "0.1.0",
   "description": "Gerrit Events Destination for Faros on Airbyte",
   "keywords": [
@@ -20,7 +20,7 @@
   ],
   "main": "./lib",
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "scripts": {
     "build": "tsc -p src",
@@ -33,7 +33,7 @@
     "watch": "tsc -b -w src test"
   },
   "dependencies": {
-    "airbyte-faros-destination": "0.18.9",
+    "airbyte-faros-destination": "0.18.11",
     "faros-js-client": "^0.7.0"
   },
   "jest": {

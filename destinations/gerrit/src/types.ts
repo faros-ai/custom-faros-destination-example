@@ -102,3 +102,17 @@ export interface ChangeAbandonedEvent extends GerritEvent {
   patchSet: GerritPatchSet;
   reason?: string;
 }
+
+export interface WipStateChangedEvent extends GerritEvent {
+  type: 'wip-state-changed';
+  change: GerritChange;
+  patchSet: GerritPatchSet;
+  changer: GerritAccount;
+}
+
+export interface ChangeRestoredEvent extends GerritEvent {
+  type: 'change-restored';
+  change: GerritChange;
+  patchSet: GerritPatchSet;
+  restorer: GerritAccount;
+}

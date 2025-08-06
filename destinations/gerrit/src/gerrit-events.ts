@@ -18,6 +18,8 @@ import {
   VoteDeletedEvent,
   ChangeAbandonedEvent,
   ChangeMergedEvent,
+  WipStateChangedEvent,
+  ChangeRestoredEvent,
 } from './types';
 
 type RepoKey = {
@@ -30,14 +32,23 @@ type CategoryDetail = {
   detail: string;
 };
 
-export class GerritEvents extends Converter {
+export class Events extends Converter {
   source = 'Gerrit';
   private users = new Map<string, GerritAccount>();
-  private organizations = new Set<string>();
-  private repositories = new Map<string, {project: string, org: string}>();
+  private organizationUid?: string;
+  private repositories = new Map<string, string>(); // lowercased uid -> original name
+
+  initialize(ctx: StreamContext): void {
+    const gerritConfig = ctx.config.source_specific_configs?.gerrit;
+    if (!gerritConfig?.organization) {
+      throw new Error('Organization must be configured in source_specific_configs.gerrit.organization');
+    }
+    this.organizationUid = gerritConfig.organization.toLowerCase();
+  }
 
   destinationModels = [
     'vcs_User',
+    'vcs_UserEmail',
     'vcs_Organization',
     'vcs_Repository',
     'vcs_Branch',
@@ -58,6 +69,11 @@ export class GerritEvents extends Converter {
     record: AirbyteRecord,
     ctx: StreamContext
   ): Promise<ReadonlyArray<DestinationRecord>> {
+    // Initialize with organization from context if not already done
+    if (!this.organizationUid) {
+      this.initialize(ctx);
+    }
+
     const event = record.record.data as GerritEvent;
     const results: DestinationRecord[] = [];
 
@@ -83,20 +99,26 @@ export class GerritEvents extends Converter {
       case 'change-merged':
         results.push(...this.convertChangeMerged(event as ChangeMergedEvent));
         break;
+      case 'wip-state-changed':
+        results.push(...this.convertWipStateChanged(event as WipStateChangedEvent));
+        break;
+      case 'change-restored':
+        results.push(...this.convertChangeRestored(event as ChangeRestoredEvent));
+        break;
     }
 
     return results;
   }
 
-  private createCommonRecords(change?: GerritChange, patchSet?: GerritPatchSet, eventCreatedOn?: number): {
+  private createCommonRecords(change?: GerritChange, patchSet?: GerritPatchSet, eventCreatedOn?: number, isWipStateChange?: boolean): {
     records: DestinationRecord[],
     prKey: {number: number, repository: RepoKey} | null
   } {
     const results: DestinationRecord[] = [];
     let prKey: {number: number, repository: RepoKey} | null = null;
 
-    // Collect organization and get key
-    const orgKey = this.collectOrganization(this.source);
+    // Get organization key
+    const orgKey = {uid: this.organizationUid!, source: this.source};
 
     // Collect repository and get key
     const repoKey = this.collectRepository(change?.project, orgKey);
@@ -128,6 +150,16 @@ export class GerritEvents extends Converter {
         repository: repoKey,
       } : undefined;
 
+      // Determine readyForReviewAt based on WIP state
+      let readyForReviewAt: Date | null;
+      if (isWipStateChange) {
+        // For wip-state-changed events: if becoming non-WIP, use eventCreatedOn
+        readyForReviewAt = !change.wip ? this.secondsToDate(eventCreatedOn) : null;
+      } else {
+        // For other events: if not WIP, use change creation date
+        readyForReviewAt = !change.wip ? this.secondsToDate(change.createdOn) : null;
+      }
+
       const prRecord: DestinationRecord = {
         model: 'vcs_PullRequest',
         record: {
@@ -144,6 +176,7 @@ export class GerritEvents extends Converter {
           closedAt,
           ...(change.status === 'MERGED' && { mergedAt: closedAt }),
           ...(mergeCommit && { mergeCommit }),
+          readyForReviewAt,
         },
       };
       results.push(prRecord);
@@ -207,11 +240,6 @@ export class GerritEvents extends Converter {
   }
 
 
-  private collectOrganization(org: string): {uid: string, source: string} {
-    const uid = org.toLowerCase();
-    this.organizations.add(uid);
-    return {uid, source: this.source};
-  }
 
   private collectRepository(project?: string, orgKey?: {uid: string, source: string}): RepoKey | null {
     if (!project || !orgKey) {
@@ -219,10 +247,7 @@ export class GerritEvents extends Converter {
     }
     
     const name = project.toLowerCase();
-    this.repositories.set(name, {
-      project: name,
-      org: orgKey.uid,
-    });
+    this.repositories.set(name, project); // Store original name
 
     return {
       name,
@@ -298,8 +323,8 @@ export class GerritEvents extends Converter {
     const { records, prKey } = this.createCommonRecords(event.change, event.patchSet);
     if (!prKey) return records;
 
-    // Check for Code-Review approval with non-zero value
-    const codeReview = event.approvals?.find(a => a.type === 'Code-Review' && a.value !== '0');
+    // Check for Code-Review approval
+    const codeReview = event.approvals?.find(a => a.type === 'Code-Review');
     if (codeReview) {
       const reviewRecord: DestinationRecord = {
         model: 'vcs_PullRequestReview',
@@ -373,6 +398,75 @@ export class GerritEvents extends Converter {
 
   private convertChangeMerged(event: ChangeMergedEvent): DestinationRecord[] {
     const { records } = this.createCommonRecords(event.change, event.patchSet, event.eventCreatedOn);
+    return records;
+  }
+
+  private convertWipStateChanged(event: WipStateChangedEvent): DestinationRecord[] {
+    const { records } = this.createCommonRecords(event.change, event.patchSet, event.eventCreatedOn, true);
+    return records;
+  }
+
+  private convertChangeRestored(event: ChangeRestoredEvent): DestinationRecord[] {
+    const { records } = this.createCommonRecords(event.change, event.patchSet, event.eventCreatedOn);
+    return records;
+  }
+
+  async onProcessingComplete(): Promise<ReadonlyArray<DestinationRecord>> {
+    const records: DestinationRecord[] = [];
+
+    // Emit organization record
+    if (this.organizationUid) {
+      const orgRecord: DestinationRecord = {
+        model: 'vcs_Organization',
+        record: {
+          uid: this.organizationUid,
+          source: this.source,
+          name: this.organizationUid,
+        },
+      };
+      records.push(orgRecord);
+    }
+
+    // Emit collected repositories
+    for (const [repoUid, originalName] of this.repositories) {
+      const repoRecord: DestinationRecord = {
+        model: 'vcs_Repository',
+        record: {
+          name: repoUid,
+          fullName: originalName,
+          organization: {
+            uid: this.organizationUid!,
+            source: this.source,
+          },
+        },
+      };
+      records.push(repoRecord);
+    }
+
+    for (const [userUid, account] of this.users) {
+      const userKey = { uid: userUid, source: this.source };
+      
+      const userRecord: DestinationRecord = {
+        model: 'vcs_User',
+        record: {
+          ...userKey,
+          name: account.name ?? account.username,
+        },
+      };
+      records.push(userRecord);
+
+      if (account.email) {
+        const userEmailRecord: DestinationRecord = {
+          model: 'vcs_UserEmail',
+          record: {
+            user: userKey,
+            email: account.email,
+          },
+        };
+        records.push(userEmailRecord);
+      }
+    }
+
     return records;
   }
 }
